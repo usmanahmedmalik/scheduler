@@ -43,7 +43,7 @@ export default function Dashboard({ user, profile, onLogout, onPreviewPublic, sh
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
                     <Button
-                        onClick={() => window.open(`/${profile.businessName}/schedule`, "_blank")}
+                        onClick={() => window.open(`/${profile.businessUrl}/schedule`, "_blank")}
                         variant="secondary"
                     >
                         <LinkIcon className="w-4 h-4" /> Public Page

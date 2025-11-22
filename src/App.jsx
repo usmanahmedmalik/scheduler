@@ -89,7 +89,7 @@ export default function App() {
                                 onLogin={() => window.location.href = '/auth'}
                                 onGetStarted={() => window.location.href = '/auth'}
                                 isLoggedIn={!!(user && providerProfile)}
-                                businessName={providerProfile?.businessName}
+                                businessName={providerProfile?.businessUrl}
                             />
                         }
                     />
@@ -112,7 +112,7 @@ export default function App() {
                                     profile={providerProfile}
                                     onLogout={handleLogout}
                                     showToast={showToast}
-                                    onPreviewPublic={() => window.open(`/${providerProfile.businessName}/schedule`, "_blank")}
+                                    onPreviewPublic={() => window.open(`/${providerProfile.businessUrl}/schedule`, "_blank")}
                                 />
                             ) : (
                                 <LandingPage

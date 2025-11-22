@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc, query, collection, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, query, collection, onSnapshot, where, getDocs } from 'firebase/firestore';
 import { Clock, Trash2, Plus, User, Calendar, Briefcase } from 'lucide-react';
 import { db, appId, COLLECTIONS } from '../../lib/firebase';
 import { Button, Card, Input } from '../ui/Primitives';
@@ -7,13 +7,34 @@ import { Button, Card, Input } from '../ui/Primitives';
 // --- Settings View ---
 export function SettingsView({ profile, userId, showToast }) {
     const [settings, setSettings] = useState(profile.settings || {});
+    const [businessUrl, setBusinessUrl] = useState(profile.businessUrl || "");
     const [saving, setSaving] = useState(false);
+
+    const validateBusinessUrl = (url) => /^[a-zA-Z0-9_-]+$/.test(url);
 
     const handleSave = async () => {
         setSaving(true);
         try {
+            // Validate businessUrl
+            if (!businessUrl || !validateBusinessUrl(businessUrl)) {
+                showToast("Business URL must only contain letters, numbers, hyphens, or underscores.", "error");
+                setSaving(false);
+                return;
+            }
+            // Check uniqueness if changed
+            if (businessUrl !== profile.businessUrl) {
+                const providersRef = collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS);
+                const qUrl = query(providersRef, where("businessUrl", "==", businessUrl));
+                const snapUrl = await getDocs(qUrl);
+                // If exists and not current user, block change
+                if (!snapUrl.empty && snapUrl.docs[0].id !== userId) {
+                    showToast("Business URL already exists. Please choose another.", "error");
+                    setSaving(false);
+                    return;
+                }
+            }
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS, userId);
-            await setDoc(docRef, { settings }, { merge: true });
+            await setDoc(docRef, { settings, businessUrl }, { merge: true });
             showToast("Settings updated successfully");
         } catch (error) {
             showToast("Failed to save settings", "error");
@@ -24,6 +45,16 @@ export function SettingsView({ profile, userId, showToast }) {
 
     return (
         <div className="max-w-2xl space-y-6">
+            <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Business Info</h3>
+                <Input
+                    label="Business URL"
+                    value={businessUrl}
+                    onChange={e => setBusinessUrl(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                    required
+                    placeholder="e.g. mybusiness"
+                />
+            </Card>
             <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Business Hours</h3>
                 <div className="grid grid-cols-2 gap-4">

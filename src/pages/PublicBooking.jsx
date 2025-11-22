@@ -19,7 +19,7 @@ export default function PublicBooking({ providerId, businessName, onBack, showTo
         async function resolveProviderId() {
             if (businessName) {
                 const providersRef = collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS);
-                const q = query(providersRef, where("businessName", "==", businessName));
+                const q = query(providersRef, where("businessUrl", "==", businessName));
                 const snap = await getDocs(q);
                 if (!snap.empty) {
                     setResolvedProviderId(snap.docs[0].id);

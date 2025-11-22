@@ -7,8 +7,13 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'fire
 
 export default function AuthPage({ onComplete, showToast }) {
     const [isRegister, setIsRegister] = useState(false);
-    const [formData, setFormData] = useState({ businessName: '', email: '', password: '', subscription: 'free' });
+    const [formData, setFormData] = useState({ businessName: '', businessUrl: '', email: '', password: '', subscription: 'free' });
     const [submitting, setSubmitting] = useState(false);
+
+    const validateBusinessUrl = (url) => {
+        // Only allow letters, numbers, hyphens, underscores
+        return /^[a-zA-Z0-9_-]+$/.test(url);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,8 +22,22 @@ export default function AuthPage({ onComplete, showToast }) {
         try {
             let userCredential;
             if (isRegister) {
-                // Check if business name already exists
+                // Validate businessUrl
+                if (!formData.businessUrl || !validateBusinessUrl(formData.businessUrl)) {
+                    showToast("Business URL must only contain letters, numbers, hyphens, or underscores.", "error");
+                    setSubmitting(false);
+                    return;
+                }
+                // Check if businessUrl already exists
                 const providersRef = collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS);
+                const qUrl = query(providersRef, where("businessUrl", "==", formData.businessUrl));
+                const snapUrl = await getDocs(qUrl);
+                if (!snapUrl.empty) {
+                    showToast("Business URL already exists. Please choose another.", "error");
+                    setSubmitting(false);
+                    return;
+                }
+                // Check if business name already exists
                 const qBusiness = query(providersRef, where("businessName", "==", formData.businessName));
                 const snapBusiness = await getDocs(qBusiness);
                 if (!snapBusiness.empty) {
@@ -41,6 +60,7 @@ export default function AuthPage({ onComplete, showToast }) {
                 const userDocRef = doc(providersRef, user.uid);
                 const newProfile = {
                     businessName: formData.businessName,
+                    businessUrl: formData.businessUrl,
                     email: formData.email,
                     subscription: formData.subscription,
                     createdAt: serverTimestamp(),
@@ -95,6 +115,7 @@ export default function AuthPage({ onComplete, showToast }) {
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {isRegister && <Input label="Business Name" required value={formData.businessName} onChange={e => setFormData({...formData, businessName: e.target.value})} />}
+                    {isRegister && <Input label="Business URL" required value={formData.businessUrl} onChange={e => setFormData({...formData, businessUrl: e.target.value.replace(/[^a-zA-Z0-9_-]/g, '')})} placeholder="e.g. mybusiness" />}
                     <Input label="Email" type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                     <Input label="Password" type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
                     <Button type="submit" className="w-full" disabled={submitting}>
