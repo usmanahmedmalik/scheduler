@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { doc, getDoc, collection, addDoc, query, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, query, onSnapshot, serverTimestamp, where, getDocs } from 'firebase/firestore';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { db, appId, COLLECTIONS } from '../lib/firebase';
 import { Button, Input } from '../components/ui/Primitives';
 
-export default function PublicBooking({ providerId, onBack, showToast, currentUser }) {
+export default function PublicBooking({ providerId, businessName, onBack, showToast, currentUser }) {
     const [provider, setProvider] = useState(null);
+    const [resolvedProviderId, setResolvedProviderId] = useState(providerId);
     const [step, setStep] = useState(1);
     const [selectedService, setSelectedService] = useState(null);
     const [selectedDate, setSelectedDate] = useState('');
@@ -15,24 +16,44 @@ export default function PublicBooking({ providerId, onBack, showToast, currentUs
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!providerId) return;
-        const fetchProvider = async () => {
-            try {
+        async function resolveProviderId() {
+            if (businessName) {
+                const providersRef = collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS);
+                const q = query(providersRef, where("businessName", "==", businessName));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    setResolvedProviderId(snap.docs[0].id);
+                    setProvider(snap.docs[0].data());
+                } else {
+                    setProvider(null);
+                }
+            } else if (providerId) {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS, providerId);
                 const snap = await getDoc(docRef);
-                if (snap.exists()) setProvider(snap.data());
-            } finally {
-                setLoading(false);
+                if (snap.exists()) {
+                    setProvider(snap.data());
+                    setResolvedProviderId(providerId);
+                } else {
+                    setProvider(null);
+                }
+            } else {
+                setProvider(null);
             }
-        };
-        const q = query(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.APPOINTMENTS));
-        const unsub = onSnapshot(q, (snap) => {
-            const all = snap.docs.map(d => d.data());
-            setExistingAppts(all.filter(a => a.providerId === providerId));
-        });
-        fetchProvider();
+            setLoading(false);
+        }
+        setLoading(true);
+        resolveProviderId();
+        // Listen for appointments for the resolved provider
+        let unsub = () => {};
+        if (resolvedProviderId) {
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.APPOINTMENTS));
+            unsub = onSnapshot(q, (snap) => {
+                const all = snap.docs.map(d => d.data());
+                setExistingAppts(all.filter(a => a.providerId === resolvedProviderId));
+            });
+        }
         return () => unsub();
-    }, [providerId]);
+    }, [providerId, businessName, resolvedProviderId]);
 
     const timeSlots = useMemo(() => {
         const settings = provider?.settings || {};
@@ -57,7 +78,7 @@ export default function PublicBooking({ providerId, onBack, showToast, currentUs
         e.preventDefault();
         try {
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.APPOINTMENTS), {
-                providerId,
+                providerId: resolvedProviderId,
                 serviceId: selectedService.id,
                 serviceName: selectedService.name,
                 date: selectedDate,
@@ -80,10 +101,11 @@ export default function PublicBooking({ providerId, onBack, showToast, currentUs
         <div className="min-h-screen bg-gray-100 py-10 px-4">
             <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
                 <div className="bg-indigo-600 p-6 text-white relative">
-                    <button onClick={onBack} className="absolute top-6 right-6 text-indigo-200 hover:text-white text-sm bg-indigo-700 px-3 py-1 rounded-full">{currentUser?.uid === providerId ? "Dashboard" : "Home"}</button>
+                    <button onClick={onBack} className="absolute top-6 right-6 text-indigo-200 hover:text-white text-sm bg-indigo-700 px-3 py-1 rounded-full">Home</button>
                     <h1 className="text-2xl font-bold">{provider.businessName}</h1>
                 </div>
                 <div className="p-8">
+                    {/* No login required, always show services and booking */}
                     {step === 1 && (
                         <div className="space-y-3">
                             <h2 className="font-bold text-lg mb-4">Select Service</h2>

@@ -2,23 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { signInAnonymously, onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, appId, COLLECTIONS } from './lib/firebase';
-
-// Import Pages
+import { BrowserRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import PublicBooking from './pages/PublicBooking';
 
+// Helper for public booking route
+function PublicBookingRoute({ showToast }) {
+    const { businessName } = useParams();
+    const navigate = useNavigate();
+    return (
+        <PublicBooking
+            businessName={businessName}
+            onBack={() => navigate('/')}
+            showToast={showToast}
+        />
+    );
+}
+
 export default function App() {
     const [user, setUser] = useState(null);
-    const [view, setView] = useState('home'); // Options: 'home', 'auth', 'dashboard', 'public_booking'
     const [loading, setLoading] = useState(true);
     const [providerProfile, setProviderProfile] = useState(null);
-
-    // Used when viewing the Public Page
-    const [targetProviderId, setTargetProviderId] = useState(null);
-
-    // Global Toast Notification State
     const [toast, setToast] = useState(null);
 
     const showToast = (message, type = 'success') => {
@@ -26,26 +32,17 @@ export default function App() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    // --- 1. Auth & Data Logic ---
     useEffect(() => {
         // Initial anonymous sign-in to ensure we can read the DB
         signInAnonymously(auth).catch(console.error);
 
         const unsubscribe = onAuthStateChanged(auth, (u) => {
-            if (u) {
-                setUser(u);
-            } else {
-                // If logged out, reset user and sign in anonymously again to allow "Guest" access
-                setUser(null);
-                signInAnonymously(auth);
-            }
+            setUser(u || null);
             setLoading(false);
         });
         return () => unsubscribe();
     }, []);
 
-    // --- 2. Profile Sync ---
-    // Once we have a user, check if they have a Provider Profile in the DB
     useEffect(() => {
         if (!user) return;
 
@@ -53,29 +50,15 @@ export default function App() {
         const unsub = onSnapshot(docRef, (snap) => {
             if (snap.exists()) {
                 setProviderProfile(snap.data());
-
-                // Auto-redirect to dashboard if they are on the home/auth screen and have a profile
-                if (view === 'auth' || view === 'home') {
-                    setView('dashboard');
-                }
             }
         });
         return () => unsub();
-    }, [user, view]);
+    }, [user]);
 
-    // --- 3. Handlers ---
     const handleLogout = async () => {
         setProviderProfile(null);
-        setView('home');
         await signOut(auth);
     };
-
-    const handlePreviewPublic = () => {
-        setTargetProviderId(user.uid);
-        setView('public_booking');
-    };
-
-    // --- 4. Render ---
 
     if (loading) {
         return (
@@ -86,52 +69,62 @@ export default function App() {
     }
 
     return (
-        <div className="font-sans text-gray-900">
-            {/* Global Toast Notification */}
-            {toast && (
-                <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white ${toast.type === 'error' ? 'bg-red-500' : 'bg-green-600'}`}>
-                    {toast.message}
-                </div>
-            )}
-
-            {/* Landing Page */}
-            {view === 'home' && (
-                <LandingPage
-                    onLogin={() => setView('auth')}
-                    onGetStarted={() => user && providerProfile ? setView('dashboard') : setView('auth')}
-                    isLoggedIn={!!(user && providerProfile)}
-                />
-            )}
-
-            {/* Auth (Login/Register) Page */}
-            {view === 'auth' && (
-                <AuthPage
-                    user={user}
-                    showToast={showToast}
-                    onComplete={() => setView('dashboard')}
-                />
-            )}
-
-            {/* Provider Dashboard */}
-            {view === 'dashboard' && user && providerProfile && (
-                <Dashboard
-                    user={user}
-                    profile={providerProfile}
-                    onLogout={handleLogout}
-                    showToast={showToast}
-                    onPreviewPublic={handlePreviewPublic}
-                />
-            )}
-
-            {/* Public Booking Page (Client View) */}
-            {view === 'public_booking' && (
-                <PublicBooking
-                    providerId={targetProviderId}
-                    showToast={showToast}
-                    currentUser={user}
-                    onBack={() => user ? setView('dashboard') : setView('home')}
-                />
-            )}
-        </div>
+        <Router>
+            <div className="font-sans text-gray-900">
+                {/* Global Toast Notification */}
+                {toast && (
+                    <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white ${toast.type === 'error' ? 'bg-red-500' : 'bg-green-600'}`}>
+                        {toast.message}
+                    </div>
+                )}
+                <Routes>
+                    <Route
+                        path="/:businessName/schedule"
+                        element={<PublicBookingRoute showToast={showToast} />}
+                    />
+                    <Route
+                        path="/"
+                        element={
+                            <LandingPage
+                                onLogin={() => window.location.href = '/auth'}
+                                onGetStarted={() => window.location.href = '/auth'}
+                                isLoggedIn={!!(user && providerProfile)}
+                                businessName={providerProfile?.businessName}
+                            />
+                        }
+                    />
+                    <Route
+                        path="/auth"
+                        element={
+                            <AuthPage
+                                user={user}
+                                showToast={showToast}
+                                onComplete={() => window.location.href = '/dashboard'}
+                            />
+                        }
+                    />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            user && providerProfile ? (
+                                <Dashboard
+                                    user={user}
+                                    profile={providerProfile}
+                                    onLogout={handleLogout}
+                                    showToast={showToast}
+                                    onPreviewPublic={() => window.open(`/${providerProfile.businessName}/schedule`, "_blank")}
+                                />
+                            ) : (
+                                <LandingPage
+                                    onLogin={() => window.location.href = '/auth'}
+                                    onGetStarted={() => window.location.href = '/auth'}
+                                    isLoggedIn={false}
+                                />
+                            )
+                        }
+                    />
+                </Routes>
+            </div>
+        </Router>
     );
 }

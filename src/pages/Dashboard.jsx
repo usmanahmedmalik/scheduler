@@ -42,7 +42,12 @@ export default function Dashboard({ user, profile, onLogout, onPreviewPublic, sh
             <main className="flex-1 overflow-y-auto pt-16 md:pt-0 p-4 md:p-8">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
-                    <Button onClick={onPreviewPublic} variant="secondary"><LinkIcon className="w-4 h-4" /> Public Page</Button>
+                    <Button
+                        onClick={() => window.open(`/${profile.businessName}/schedule`, "_blank")}
+                        variant="secondary"
+                    >
+                        <LinkIcon className="w-4 h-4" /> Public Page
+                    </Button>
                 </header>
 
                 {activeTab === 'settings' && <SettingsView profile={profile} userId={user.uid} showToast={showToast} />}
