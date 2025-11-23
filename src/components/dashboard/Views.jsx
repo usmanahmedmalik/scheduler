@@ -12,6 +12,30 @@ export function SettingsView({ profile, userId, showToast }) {
 
     const validateBusinessUrl = (url) => /^[a-zA-Z0-9_-]+$/.test(url);
 
+    // Top 20 popular currencies
+    const currencyOptions = [
+        { code: "USD", symbol: "$", name: "US Dollar" },
+        { code: "EUR", symbol: "€", name: "Euro" },
+        { code: "GBP", symbol: "£", name: "British Pound" },
+        { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+        { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+        { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+        { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
+        { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+        { code: "HKD", symbol: "HK$", name: "Hong Kong Dollar" },
+        { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
+        { code: "SEK", symbol: "kr", name: "Swedish Krona" },
+        { code: "KRW", symbol: "₩", name: "South Korean Won" },
+        { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
+        { code: "NOK", symbol: "kr", name: "Norwegian Krone" },
+        { code: "MXN", symbol: "$", name: "Mexican Peso" },
+        { code: "INR", symbol: "₹", name: "Indian Rupee" },
+        { code: "RUB", symbol: "₽", name: "Russian Ruble" },
+        { code: "ZAR", symbol: "R", name: "South African Rand" },
+        { code: "TRY", symbol: "₺", name: "Turkish Lira" },
+        { code: "BRL", symbol: "R$", name: "Brazilian Real" }
+    ];
+
     const handleSave = async () => {
         setSaving(true);
         try {
@@ -66,7 +90,18 @@ export function SettingsView({ profile, userId, showToast }) {
                 <h3 className="text-lg font-semibold mb-4">Appointment Rules</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Gap (min)" type="number" min="0" value={settings.gapMinutes || 15} onChange={e => setSettings({...settings, gapMinutes: parseInt(e.target.value)})} />
-                    <Input label="Currency" value={settings.currency || "$"} onChange={e => setSettings({...settings, currency: e.target.value})} />
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <select
+                            value={settings.currency || "USD"}
+                            onChange={e => setSettings({...settings, currency: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
+                        >
+                            {currencyOptions.map(opt => (
+                                <option key={opt.code} value={opt.symbol}>{opt.name} ({opt.symbol})</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </Card>
             <div className="flex justify-end">
