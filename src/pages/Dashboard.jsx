@@ -3,7 +3,10 @@ import { Calendar, Briefcase, Settings, LogOut, Link as LinkIcon, Menu, X } from
 import { Button } from '../components/ui/Primitives';
 import { SettingsView, ServicesView, AppointmentsView } from '../components/dashboard/Views';
 
-export default function Dashboard({ user, profile, onLogout, onPreviewPublic, showToast }) {
+import { useAuth } from '../hooks/useAuth';
+
+export default function Dashboard({ user, profile, onPreviewPublic, showToast }) {
+    const { logout } = useAuth();
     const [activeTab, setActiveTab] = useState('appointments');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -28,7 +31,7 @@ export default function Dashboard({ user, profile, onLogout, onPreviewPublic, sh
                     ))}
                 </div>
                 <div className="p-4 border-t border-gray-100">
-                    <button onClick={onLogout} className="flex items-center gap-2 text-gray-500 hover:text-red-600 text-sm font-medium px-2"><LogOut className="w-4 h-4" /> Sign Out</button>
+                    <button onClick={logout} className="flex items-center gap-2 text-gray-500 hover:text-red-600 text-sm font-medium px-2"><LogOut className="w-4 h-4" /> Sign Out</button>
                 </div>
             </aside>
 

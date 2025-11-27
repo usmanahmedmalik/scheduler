@@ -21,17 +21,21 @@ export const Card = ({ children, className = '' }) => (
     </div>
 );
 
-export const Input = ({ label, type = "text", value, onChange, placeholder, required = false, min }) => (
-    <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-        <input
-            type={type}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            required={required}
-            min={min}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
-        />
-    </div>
-);
+export const Input = ({ label, type = "text", value, onChange, placeholder, required = false, min }) => {
+    const id = React.useId();
+    return (
+        <div className="mb-4">
+            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <input
+                id={id}
+                type={type}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                required={required}
+                min={min}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
+            />
+        </div>
+    );
+};

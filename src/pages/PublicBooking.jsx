@@ -1,92 +1,29 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { doc, getDoc, collection, addDoc, query, onSnapshot, serverTimestamp, where, getDocs } from 'firebase/firestore';
+import React, { useState } from 'react';
 import { CheckCircle, Loader2 } from 'lucide-react';
-import { db, appId, COLLECTIONS } from '../lib/firebase';
 import { Button, Input } from '../components/ui/Primitives';
+import { useProvider } from '../hooks/useProvider';
+import { useBooking } from '../hooks/useBooking';
 
 export default function PublicBooking({ providerId, businessName, onBack, showToast, currentUser }) {
-    const [provider, setProvider] = useState(null);
-    const [resolvedProviderId, setResolvedProviderId] = useState(providerId);
+    const { provider, loading: providerLoading } = useProvider(businessName || providerId, businessName ? 'url' : 'id');
     const [step, setStep] = useState(1);
     const [selectedService, setSelectedService] = useState(null);
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [clientForm, setClientForm] = useState({ name: '', email: '' });
-    const [existingAppts, setExistingAppts] = useState([]);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function resolveProviderId() {
-            if (businessName) {
-                const providersRef = collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS);
-                const q = query(providersRef, where("businessUrl", "==", businessName));
-                const snap = await getDocs(q);
-                if (!snap.empty) {
-                    setResolvedProviderId(snap.docs[0].id);
-                    setProvider(snap.docs[0].data());
-                } else {
-                    setProvider(null);
-                }
-            } else if (providerId) {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS, providerId);
-                const snap = await getDoc(docRef);
-                if (snap.exists()) {
-                    setProvider(snap.data());
-                    setResolvedProviderId(providerId);
-                } else {
-                    setProvider(null);
-                }
-            } else {
-                setProvider(null);
-            }
-            setLoading(false);
-        }
-        setLoading(true);
-        resolveProviderId();
-        // Listen for appointments for the resolved provider
-        let unsub = () => {};
-        if (resolvedProviderId) {
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.APPOINTMENTS));
-            unsub = onSnapshot(q, (snap) => {
-                const all = snap.docs.map(d => d.data());
-                setExistingAppts(all.filter(a => a.providerId === resolvedProviderId));
-            });
-        }
-        return () => unsub();
-    }, [providerId, businessName, resolvedProviderId]);
-
-    const timeSlots = useMemo(() => {
-        const settings = provider?.settings || {};
-        const { dayStart = "09:00", dayEnd = "17:00", gapMinutes = 15 } = settings;
-        if (!provider || !selectedDate || !selectedService) return [];
-
-        const duration = selectedService.duration;
-        const slots = [];
-        let current = new Date(`${selectedDate}T${dayStart}`);
-        const end = new Date(`${selectedDate}T${dayEnd}`);
-
-        while (current < end) {
-            const timeString = current.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-            const isBlocked = existingAppts.some(appt => appt.date === selectedDate && appt.time === timeString);
-            if (!isBlocked) slots.push(timeString);
-            current.setMinutes(current.getMinutes() + duration + gapMinutes);
-        }
-        return slots;
-    }, [provider, selectedDate, selectedService, existingAppts]);
+    const { timeSlots, submitBooking } = useBooking(provider?.id, selectedService, selectedDate, provider?.settings);
 
     const handleBooking = async (e) => {
         e.preventDefault();
         try {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.APPOINTMENTS), {
-                providerId: resolvedProviderId,
+            await submitBooking({
                 serviceId: selectedService.id,
                 serviceName: selectedService.name,
                 date: selectedDate,
                 time: selectedTime,
                 clientName: clientForm.name,
-                clientEmail: clientForm.email,
-                status: 'confirmed',
-                createdAt: serverTimestamp()
+                clientEmail: clientForm.email
             });
             setStep(4);
         } catch (error) {
@@ -94,7 +31,7 @@ export default function PublicBooking({ providerId, businessName, onBack, showTo
         }
     };
 
-    if (loading) return <div className="flex h-screen items-center justify-center gap-2"><Loader2 className="animate-spin"/> Loading...</div>;
+    if (providerLoading) return <div className="flex h-screen items-center justify-center gap-2"><Loader2 className="animate-spin" /> Loading...</div>;
     if (!provider) return <div className="flex h-screen items-center justify-center text-red-500">Provider not found.</div>;
 
     return (
@@ -131,14 +68,14 @@ export default function PublicBooking({ providerId, businessName, onBack, showTo
                     {step === 3 && (
                         <form onSubmit={handleBooking}>
                             <button type="button" onClick={() => setStep(2)} className="text-sm text-gray-500 mb-4">← Back</button>
-                            <Input label="Name" value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} required />
-                            <Input label="Email" value={clientForm.email} onChange={e => setClientForm({...clientForm, email: e.target.value})} required />
+                            <Input label="Name" value={clientForm.name} onChange={e => setClientForm({ ...clientForm, name: e.target.value })} required />
+                            <Input label="Email" value={clientForm.email} onChange={e => setClientForm({ ...clientForm, email: e.target.value })} required />
                             <Button type="submit" className="w-full mt-4">Confirm</Button>
                         </form>
                     )}
                     {step === 4 && (
                         <div className="text-center py-10">
-                            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4"/>
+                            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                             <h2 className="text-2xl font-bold">Confirmed!</h2>
                             <p className="mb-6">See you on {selectedDate} at {selectedTime}</p>
                             <Button onClick={onBack} variant="secondary">Done</Button>

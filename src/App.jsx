@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { signInAnonymously, onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { auth, db, appId, COLLECTIONS } from './lib/firebase';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import PublicBooking from './pages/PublicBooking';
+import { useAuth } from './hooks/useAuth';
+import { useProvider } from './hooks/useProvider';
 
 // Helper for public booking route
 function PublicBookingRoute({ showToast }) {
@@ -22,9 +21,8 @@ function PublicBookingRoute({ showToast }) {
 }
 
 export default function App() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [providerProfile, setProviderProfile] = useState(null);
+    const { user, loading: authLoading } = useAuth();
+    const { provider: providerProfile, loading: profileLoading } = useProvider(user?.uid);
     const [toast, setToast] = useState(null);
 
     const showToast = (message, type = 'success') => {
@@ -32,35 +30,7 @@ export default function App() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    useEffect(() => {
-        // Initial anonymous sign-in to ensure we can read the DB
-        signInAnonymously(auth).catch(console.error);
-
-        const unsubscribe = onAuthStateChanged(auth, (u) => {
-            setUser(u || null);
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        if (!user) return;
-
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS, user.uid);
-        const unsub = onSnapshot(docRef, (snap) => {
-            if (snap.exists()) {
-                setProviderProfile(snap.data());
-            }
-        });
-        return () => unsub();
-    }, [user]);
-
-    const handleLogout = async () => {
-        setProviderProfile(null);
-        await signOut(auth);
-    };
-
-    if (loading) {
+    if (authLoading || (user && profileLoading)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -97,9 +67,8 @@ export default function App() {
                         path="/auth"
                         element={
                             <AuthPage
-                                user={user}
-                                showToast={showToast}
                                 onComplete={() => window.location.href = '/dashboard'}
+                                showToast={showToast}
                             />
                         }
                     />
@@ -110,7 +79,6 @@ export default function App() {
                                 <Dashboard
                                     user={user}
                                     profile={providerProfile}
-                                    onLogout={handleLogout}
                                     showToast={showToast}
                                     onPreviewPublic={() => window.open(`/${providerProfile.businessUrl}/schedule`, "_blank")}
                                 />
