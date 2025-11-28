@@ -1,12 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import {
-    collection,
-    addDoc,
-    query,
-    onSnapshot,
-    serverTimestamp
-} from 'firebase/firestore';
-import { db, appId, COLLECTIONS } from '../lib/firebase';
+import { bookingService } from '../services/bookingService';
 
 export function useBooking(providerId, service, selectedDate, providerSettings) {
     const [existingAppts, setExistingAppts] = useState([]);
@@ -21,16 +14,18 @@ export function useBooking(providerId, service, selectedDate, providerSettings) 
         }
 
         setLoading(true);
-        const q = query(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.APPOINTMENTS));
-        const unsubscribe = onSnapshot(q, (snap) => {
-            const all = snap.docs.map(d => d.data());
-            setExistingAppts(all.filter(a => a.providerId === providerId));
-            setLoading(false);
-        }, (err) => {
-            console.error(err);
-            setError(err);
-            setLoading(false);
-        });
+        const unsubscribe = bookingService.subscribeToAppointments(
+            providerId,
+            (appts) => {
+                setExistingAppts(appts);
+                setLoading(false);
+            },
+            (err) => {
+                console.error(err);
+                setError(err);
+                setLoading(false);
+            }
+        );
 
         return () => unsubscribe();
     }, [providerId]);
@@ -56,11 +51,9 @@ export function useBooking(providerId, service, selectedDate, providerSettings) 
 
     const submitBooking = async (bookingData) => {
         try {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.APPOINTMENTS), {
+            await bookingService.createBooking({
                 ...bookingData,
-                providerId,
-                status: 'confirmed',
-                createdAt: serverTimestamp()
+                providerId
             });
             return true;
         } catch (err) {
