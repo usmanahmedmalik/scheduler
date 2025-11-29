@@ -1,4 +1,3 @@
-```javascript
 import { useState, useEffect } from 'react';
 import { providerService } from '../services/providerService';
 
@@ -47,14 +46,7 @@ export function useProvider(identifier, type = 'id') {
 
         const result = fetchProvider();
         if (result && typeof result === 'function') return result;
-        // Handle promise from async function if needed, but here we just need cleanup if subscription
-        // The async function returns unsubscribe only for 'id' case.
-        // For 'url' case it returns undefined (implicitly).
-        // React useEffect cleanup expects a function or undefined.
-        // But fetchProvider is async, so it returns a Promise.
-        // We need to handle this better.
     }, [identifier, type]);
 
     return { provider, loading, error };
 }
-```
