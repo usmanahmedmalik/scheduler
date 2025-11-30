@@ -1,0 +1,36 @@
+
+> my-scheduler@0.0.0 test
+> vitest src/tests/AuthPage.test.jsx --run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.14 [39m[90m/Users/usmanahmedmalik/Herd/my-scheduler[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/tests/AuthPage.test.jsx[2m [ src/tests/AuthPage.test.jsx ][22m
+[31m[1mError[22m: Failed to resolve import "sonner" from "src/tests/AuthPage.test.jsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/usmanahmedmalik/Herd/my-scheduler/src/tests/AuthPage.test.jsx[39m:4:0
+[33m  15 |  const __vi_import_1__ = await import("@testing-library/react");
+  16 |  const __vi_import_2__ = await import("../pages/AuthPage");
+  17 |  const __vi_import_3__ = await import("sonner");
+     |                                       ^
+  18 |  
+  19 |  [39m
+[90m [2m❯[22m TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/config.js:[2m29647:43[22m[39m
+[90m [2m❯[22m TransformPluginContext.error node_modules/vite/dist/node/chunks/config.js:[2m29644:14[22m[39m
+[90m [2m❯[22m normalizeUrl node_modules/vite/dist/node/chunks/config.js:[2m27767:18[22m[39m
+[90m [2m❯[22m node_modules/vite/dist/node/chunks/config.js:[2m27825:32[22m[39m
+[90m [2m❯[22m TransformPluginContext.transform node_modules/vite/dist/node/chunks/config.js:[2m27793:4[22m[39m
+[90m [2m❯[22m EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/config.js:[2m29445:14[22m[39m
+[90m [2m❯[22m loadAndTransform node_modules/vite/dist/node/chunks/config.js:[2m23316:26[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 21:09:13
+[2m   Duration [22m 331ms[2m (transform 6ms, setup 28ms, import 0ms, tests 0ms, environment 203ms)[22m
+

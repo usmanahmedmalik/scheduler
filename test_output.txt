@@ -1,0 +1,45 @@
+
+> my-scheduler@0.0.0 test
+> vitest src/tests/AuthPage.test.jsx --run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.14 [39m[90m/Users/usmanahmedmalik/Herd/my-scheduler[39m
+
+ [31m❯[39m src/tests/AuthPage.test.jsx [2m([22m[2m4 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 11[2mms[22m[39m
+[31m     [31m×[31m renders login form by default[39m[32m 9[2mms[22m[39m
+[31m     [31m×[31m switches to register form[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m handles successful login[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m handles login failure[39m[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/tests/AuthPage.test.jsx[2m > [22mAuthPage[2m > [22mrenders login form by default
+[41m[1m FAIL [22m[49m src/tests/AuthPage.test.jsx[2m > [22mAuthPage[2m > [22mswitches to register form
+[41m[1m FAIL [22m[49m src/tests/AuthPage.test.jsx[2m > [22mAuthPage[2m > [22mhandles successful login
+[41m[1m FAIL [22m[49m src/tests/AuthPage.test.jsx[2m > [22mAuthPage[2m > [22mhandles login failure
+[31m[1mReferenceError[22m: ArrowRight is not defined[39m
+[36m [2m❯[22m AuthPage src/pages/AuthPage.jsx:[2m96:77[22m[39m
+    [90m 94| [39m                <div className="mt-6 text-center pt-4 border-t border-…
+    [90m 95| [39m                    <button onClick={() => setIsRegister(!isRegister)}…
+    [90m 96| [39m                        {isRegister ? 'Log in here' : 'Create an accou…
+    [90m   | [39m                                                                            [31m^[39m
+    [90m 97| [39m                    [33m<[39m[33m/[39m[33mbutton[39m[33m>[39m
+    [90m 98| [39m                [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+[90m [2m❯[22m Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:[2m25904:20[22m[39m
+[90m [2m❯[22m renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:[2m7662:22[22m[39m
+[90m [2m❯[22m updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:[2m10166:19[22m[39m
+[90m [2m❯[22m beginWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m11778:18[22m[39m
+[90m [2m❯[22m runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:[2m874:13[22m[39m
+[90m [2m❯[22m performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m17641:22[22m[39m
+[90m [2m❯[22m workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:[2m17469:41[22m[39m
+[90m [2m❯[22m renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:[2m17450:11[22m[39m
+[90m [2m❯[22m performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:[2m16583:35[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[90m (4)[39m
+[2m   Start at [22m 21:01:11
+[2m   Duration [22m 646ms[2m (transform 33ms, setup 59ms, import 98ms, tests 11ms, environment 389ms)[22m
+

@@ -43,6 +43,7 @@ describe('AuthPage', () => {
     });
 
     it('handles login failure', async () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
         mockLogin.mockRejectedValue(new Error('Auth failed'));
 
         render(<AuthPage onComplete={mockOnComplete} showToast={mockShowToast} />);
@@ -54,6 +55,8 @@ describe('AuthPage', () => {
         await waitFor(() => {
             expect(mockShowToast).toHaveBeenCalledWith('Auth failed', 'error');
         });
+
+        consoleSpy.mockRestore();
     });
 
     it('handles registration success', async () => {

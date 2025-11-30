@@ -85,7 +85,8 @@ export default function AuthPage({ onComplete, showToast }) {
             } else if (err.code === "auth/wrong-password") {
                 showToast("Incorrect password. Please try again.", "error");
             } else {
-                showToast(err.message || "Authentication failed.", "error");
+                const errorMessage = err.message || "Authentication failed.";
+                showToast(errorMessage.replace("Firebase: ", ""), "error");
             }
             console.error(err);
         } finally {
