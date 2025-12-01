@@ -2,7 +2,9 @@ import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signOut
+    signOut,
+    User,
+    UserCredential
 } from 'firebase/auth';
 import {
     doc,
@@ -15,27 +17,35 @@ import {
 } from 'firebase/firestore';
 import { auth, db, appId, COLLECTIONS } from '../lib/firebase';
 
+export interface UserProfile {
+    businessName: string;
+    businessUrl: string;
+    email: string;
+    subscription: string;
+    [key: string]: any;
+}
+
 export const authService = {
-    subscribeToAuth: (callback) => {
+    subscribeToAuth: (callback: (user: User | null) => void) => {
         return onAuthStateChanged(auth, callback);
     },
 
-    login: (email, password) => {
+    login: (email: string, password: string): Promise<UserCredential> => {
         return signInWithEmailAndPassword(auth, email, password);
     },
 
-    logout: () => {
+    logout: (): Promise<void> => {
         return signOut(auth);
     },
 
-    checkAvailability: async (field, value) => {
+    checkAvailability: async (field: string, value: string): Promise<boolean> => {
         const providersRef = collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PROVIDERS);
         const q = query(providersRef, where(field, "==", value));
         const snap = await getDocs(q);
         return snap.empty;
     },
 
-    register: async (email, password, profileData) => {
+    register: async (email: string, password: string, profileData: UserProfile): Promise<User> => {
         // 1. Create Auth User
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const newUser = userCredential.user;
