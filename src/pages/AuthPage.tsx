@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { Button, Input } from '../components/ui/Primitives';
 import { useAuth } from '../hooks/useAuth';
+import { User } from 'firebase/auth';
 
-export default function AuthPage({ onComplete, showToast }) {
-    const [isRegister, setIsRegister] = useState(false);
+interface AuthPageProps {
+    onComplete: (user?: User) => void;
+    showToast: (message: string, type?: 'success' | 'error') => void;
+}
+
+export default function AuthPage({ onComplete, showToast }: AuthPageProps) {
+    const [isRegister, setIsRegister] = useState<boolean>(false);
     const [formData, setFormData] = useState({ businessName: '', businessUrl: '', email: '', password: '', subscription: 'free' });
-    const [submitting, setSubmitting] = useState(false);
+    const [submitting, setSubmitting] = useState<boolean>(false);
     const { login, register, checkAvailability } = useAuth();
 
-    const validateBusinessUrl = (url) => {
+    const validateBusinessUrl = (url: string): boolean => {
         // Only allow letters, numbers, hyphens, underscores
         return /^[a-zA-Z0-9_-]+$/.test(url);
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
 
@@ -72,7 +78,7 @@ export default function AuthPage({ onComplete, showToast }) {
                 showToast("Logged in successfully!");
                 onComplete(user);
             }
-        } catch (err) {
+        } catch (err: any) {
             // Handle Firebase "operation-not-allowed" error
             if (err.code === "auth/operation-not-allowed") {
                 showToast(

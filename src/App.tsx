@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
@@ -7,9 +7,14 @@ import PublicBooking from './pages/PublicBooking';
 import { useAuth } from './hooks/useAuth';
 import { useProvider } from './hooks/useProvider';
 
+interface Toast {
+    message: string;
+    type: 'success' | 'error';
+}
+
 // Helper for public booking route
-function PublicBookingRoute({ showToast }) {
-    const { businessName } = useParams();
+function PublicBookingRoute({ showToast }: { showToast: (message: string, type?: 'success' | 'error') => void }) {
+    const { businessName } = useParams<{ businessName: string }>();
     const navigate = useNavigate();
     return (
         <PublicBooking
@@ -23,9 +28,9 @@ function PublicBookingRoute({ showToast }) {
 export default function App() {
     const { user, loading: authLoading } = useAuth();
     const { provider: providerProfile, loading: profileLoading } = useProvider(user?.uid);
-    const [toast, setToast] = useState(null);
+    const [toast, setToast] = useState<Toast | null>(null);
 
-    const showToast = (message, type = 'success') => {
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
     };

@@ -1,7 +1,13 @@
-import React from 'react';
 import { Calendar, CheckCircle2 } from 'lucide-react';
 
-export default function LandingPage({ onGetStarted, onLogin, isLoggedIn, businessName }) {
+interface LandingPageProps {
+    onGetStarted: () => void;
+    onLogin: () => void;
+    isLoggedIn: boolean;
+    businessName?: string;
+}
+
+export default function LandingPage({ onGetStarted, onLogin, isLoggedIn, businessName }: LandingPageProps) {
     return (
         <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-indigo-50">
             {/* NAV */}
@@ -19,7 +25,7 @@ export default function LandingPage({ onGetStarted, onLogin, isLoggedIn, busines
             <main className="flex-grow flex flex-col items-center justify-center text-center px-6">
                 <div className="max-w-4xl mx-auto space-y-8">
                     <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 leading-tight">
-                        Simple <span className="text-indigo-600">appointment scheduling</span><br/>for small businesses.
+                        Simple <span className="text-indigo-600">appointment scheduling</span><br />for small businesses.
                     </h1>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                         Manage bookings, set availability, and let customers schedule with you in seconds.

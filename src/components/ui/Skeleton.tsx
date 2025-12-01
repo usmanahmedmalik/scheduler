@@ -1,6 +1,10 @@
-import React from 'react';
 
-export function Skeleton({ className = "", variant = "text" }) {
+interface SkeletonProps {
+    className?: string;
+    variant?: 'text' | 'circular' | 'rectangular';
+}
+
+export function Skeleton({ className = "", variant = "text" }: SkeletonProps) {
     const baseClasses = "animate-pulse bg-gray-200 rounded";
 
     let variantClasses = "";

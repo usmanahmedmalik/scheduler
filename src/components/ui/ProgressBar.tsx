@@ -1,6 +1,11 @@
-import React from 'react';
 
-export function ProgressBar({ currentStep, totalSteps, labels = [] }) {
+interface ProgressBarProps {
+    currentStep: number;
+    totalSteps: number;
+    labels?: string[];
+}
+
+export function ProgressBar({ currentStep, totalSteps, labels = [] }: ProgressBarProps) {
     const progress = Math.min(100, Math.max(0, ((currentStep - 1) / (totalSteps - 1)) * 100));
 
     return (

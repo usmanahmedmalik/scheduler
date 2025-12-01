@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Calendar, Briefcase, Settings, LogOut, Link as LinkIcon, Menu, X } from 'lucide-react';
 import { Button } from '../components/ui/Primitives';
+// @ts-ignore
 import { SettingsView, ServicesView, AppointmentsView } from '../components/dashboard/Views';
 
 import { useAuth } from '../hooks/useAuth';
+import { User } from 'firebase/auth';
 
-export default function Dashboard({ user, profile, onPreviewPublic, showToast }) {
+interface DashboardProps {
+    user: User;
+    profile: any;
+    onPreviewPublic: () => void;
+    showToast: (message: string, type?: 'success' | 'error') => void;
+}
+
+export default function Dashboard({ user, profile, onPreviewPublic, showToast }: DashboardProps) {
     const { logout } = useAuth();
-    const [activeTab, setActiveTab] = useState('appointments');
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<string>('appointments');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
     const menuItems = [
         { id: 'appointments', label: 'Appointments', icon: Calendar },
@@ -46,7 +55,7 @@ export default function Dashboard({ user, profile, onPreviewPublic, showToast })
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
                     <Button
-                        onClick={() => window.open(`/${profile.businessUrl}/schedule`, "_blank")}
+                        onClick={onPreviewPublic}
                         variant="secondary"
                     >
                         <LinkIcon className="w-4 h-4" /> Public Page

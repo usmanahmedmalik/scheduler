@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { providerService } from '../services/providerService';
+import { providerService, Provider } from '../services/providerService';
+import { FirestoreError } from 'firebase/firestore';
 
-export function useProvider(identifier, type = 'id') {
-    const [provider, setProvider] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+export function useProvider(identifier: string | undefined, type: 'id' | 'url' = 'id') {
+    const [provider, setProvider] = useState<Provider | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<FirestoreError | Error | null>(null);
 
     useEffect(() => {
         if (!identifier) {
@@ -15,16 +16,18 @@ export function useProvider(identifier, type = 'id') {
         setLoading(true);
         setError(null);
 
+        let unsubscribe: (() => void) | undefined;
+
         async function fetchProvider() {
             try {
                 if (type === 'url') {
-                    const data = await providerService.getProviderByUrl(identifier);
+                    const data = await providerService.getProviderByUrl(identifier!);
                     setProvider(data);
                     setLoading(false);
                 } else {
                     // Subscribe to provider updates
-                    const unsubscribe = providerService.subscribeToProvider(
-                        identifier,
+                    unsubscribe = providerService.subscribeToProvider(
+                        identifier!,
                         (data) => {
                             setProvider(data);
                             setLoading(false);
@@ -35,17 +38,19 @@ export function useProvider(identifier, type = 'id') {
                             setLoading(false);
                         }
                     );
-                    return unsubscribe;
                 }
             } catch (err) {
                 console.error(err);
-                setError(err);
+                setError(err as Error);
                 setLoading(false);
             }
         }
 
-        const result = fetchProvider();
-        if (result && typeof result === 'function') return result;
+        fetchProvider();
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, [identifier, type]);
 
     return { provider, loading, error };

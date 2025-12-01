@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
-import { CheckCircle, Loader2, Calendar as CalendarIcon, Clock, User } from 'lucide-react';
+import React, { useState, FormEvent } from 'react';
+import { CheckCircle, Calendar as CalendarIcon, Clock, User } from 'lucide-react';
 import { Button, Input } from '../components/ui/Primitives';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useProvider } from '../hooks/useProvider';
 import { useBooking } from '../hooks/useBooking';
 
-export default function PublicBooking({ providerId, businessName, onBack, showToast, currentUser }) {
+interface PublicBookingProps {
+    providerId?: string;
+    businessName?: string;
+    onBack: () => void;
+    showToast: (message: string, type?: 'success' | 'error') => void;
+    currentUser?: any;
+}
+
+export default function PublicBooking({ providerId, businessName, onBack, showToast }: PublicBookingProps) {
     const { provider, loading: providerLoading } = useProvider(businessName || providerId, businessName ? 'url' : 'id');
-    const [step, setStep] = useState(1);
-    const [selectedService, setSelectedService] = useState(null);
-    const [selectedDate, setSelectedDate] = useState('');
-    const [selectedTime, setSelectedTime] = useState('');
+    const [step, setStep] = useState<number>(1);
+    const [selectedService, setSelectedService] = useState<any>(null);
+    const [selectedDate, setSelectedDate] = useState<string>('');
+    const [selectedTime, setSelectedTime] = useState<string>('');
     const [clientForm, setClientForm] = useState({ name: '', email: '' });
 
     const { timeSlots, submitBooking, loading: bookingLoading } = useBooking(provider?.id, selectedService, selectedDate, provider?.settings);
 
-    const handleBooking = async (e) => {
+    const handleBooking = async (e: FormEvent) => {
         e.preventDefault();
         try {
             await submitBooking({
@@ -68,7 +76,7 @@ export default function PublicBooking({ providerId, businessName, onBack, showTo
                                 <BriefcaseIcon className="w-5 h-5 text-indigo-600" /> Select Service
                             </h2>
                             <div className="grid gap-3">
-                                {provider.services?.map(s => (
+                                {provider.services?.map((s: any) => (
                                     <button
                                         key={s.id}
                                         onClick={() => { setSelectedService(s); setStep(2); }}
@@ -195,7 +203,7 @@ export default function PublicBooking({ providerId, businessName, onBack, showTo
 }
 
 // Helper icon component since Briefcase is not imported
-function BriefcaseIcon(props) {
+function BriefcaseIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
     )
